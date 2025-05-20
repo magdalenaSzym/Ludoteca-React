@@ -242,7 +242,7 @@ export const Borrow = () => {
                   <div className={styles.tableActions}>
                     <IconButton
                       aria-label="delete"
-                      color="primary"
+                      color="error"
                       onClick={() => {
                         setIdToDelete(borrow.id);;
                       }}
