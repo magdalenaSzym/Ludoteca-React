@@ -32,13 +32,17 @@ const initialState= {
     const [dateError, setDateError] = useState<string>(''); 
     const [gameError, setGameError] = useState<string>('');
     const loader = useContext(LoaderContext);
-    const [pageNumber, setPageNumber] = useState(0);
-    const [pageSize, setPageSize] = useState(5);
+   // const [pageNumber, setPageNumber] = useState(0);
+   // const [pageSize, setPageSize] = useState(5);
     const { data: games, isLoading: isLoadingGames } = useGetGamesQuery({
       title: "",
       idCategory: ""
     });
     const { data: customers, isLoading: isLoadingClients } = useGetCustomersQuery(null);
+
+     useEffect(() => {
+      loader.showLoading(isLoadingGames || isLoadingClients);
+    }, [isLoadingGames, isLoadingClients]);
 
     useEffect(() => {
       if (props.borrow) {
@@ -52,10 +56,7 @@ const initialState= {
       }
     }, [props?.borrow]);
 
-    useEffect(() => {
-      loader.showLoading(isLoadingGames || isLoadingClients);
-    }, [isLoadingGames, isLoadingClients]);
-
+  
     const handleChangeForm = (
       event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
@@ -67,6 +68,7 @@ const initialState= {
       setGameError('');
     };
 
+     // cambios en selects
     const handleChangeSelect = (
       event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
@@ -86,40 +88,28 @@ const initialState= {
     };    
 
     const handleCreate = async () => {
-      if (form.finishDate && form.startDate) {
-        
+      if (!form.customer || !form.game || !form.startDate || !form.finishDate) {
+        setDateError("Todos los campos son obligatorios");
+        return;
+      }
   
        const newBorrow: Borrow = {
             id: "",
-            customer: form.customer,
+            customer: form.customer!,
             game: form.game!,
             startDate: form.startDate,
             finishDate: form.finishDate,
           };
+
           try{
              props.create(newBorrow);
-          props.closeModal();
+             props.closeModal();
           } catch (error: any) {
-          console.error("Error during loan creation:", error);
-
-          const errorMessage = error.message || 'Ha ocurrido un error al intentar crear el préstamo.';
-
-          if (error.response) {
-            try {
-              const errorData = await error.response.json();
-              setGameError(errorData.message || errorMessage);
-            } catch (e) {
-              setGameError(errorMessage);
-            }
-          } else {
-            setGameError(errorMessage);
-          }
-        }
-      }
+            setGameError(error.message || "Ha ocurrido un error al intentar crear el préstamo")
+          }  
     };
 
-      
-
+  
   return (
     <div>
       <Dialog open={true} onClose={props.closeModal}>
@@ -157,13 +147,13 @@ const initialState= {
               ))}
           </TextField>
           <TextField
-            id="client"
+            id="customer"
             select
             label="Cliente"
             defaultValue=""
             fullWidth
             variant="standard"
-            name="client"
+            name="customer"
             value={form.customer ? form.customer.id : ""}
             onChange={handleChangeSelect}
           >
@@ -176,7 +166,7 @@ const initialState= {
           </TextField>
           <TextField
             margin="dense"
-            id="loanDate"
+            id="startDate"
             label="Fecha de inicio del préstamo"
             fullWidth
             variant="standard"
@@ -187,7 +177,7 @@ const initialState= {
           />
           <TextField
             margin="dense"
-            id="returnDate"
+            id="finishDate"
             label="Fecha de fin del préstamo"
             fullWidth
             variant="standard"
@@ -203,7 +193,7 @@ const initialState= {
           <Button onClick={props.closeModal}>Cancelar</Button>
           <Button
             onClick={handleCreate}
-            disabled={!form.customer || !form.game || !form.startDate || !form.finishDate}
+           
           >
             Crear
           </Button>
@@ -212,9 +202,5 @@ const initialState= {
     </div>
   );
 
-
-function useGetGameQuery(arg0: { title: string; idCategory: string; }): { data: any; isLoading: any; } {
-    throw new Error("Function not implemented.");
-}
 
  }

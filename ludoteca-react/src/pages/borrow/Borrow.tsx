@@ -14,7 +14,7 @@ import {
 import type { Customer } from "../../types/Customer";
 import type { Game } from "../../types/Game";
 import type { Borrow as BorrowModel } from "../../types/Borrow";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { ClearIcon, DesktopDatePicker } from "@mui/x-date-pickers";
@@ -56,11 +56,12 @@ export const Borrow = () => {
     setPageSize(parseInt(event.target.value, 10));
   };
 
-  const { data: dataPage, error: errorPage, isLoading: isLoadingPage, isFetching: isFetchingPage } = useGetBorrowsByPageQuery({
+  const { data: dataPage, isFetching: isFetchingPage } 
+  =  useGetBorrowsByPageQuery({
     pageNumber,
     pageSize,
-    idGame: filterbyGame,
-    idCustomer: filterbyCustomer,
+    gameId: filterbyGame ,
+    customerId: filterbyCustomer,
     date: filterDate ? dayjs(filterDate).startOf('day').format('YYYY-MM-DD'): '',
   });
 
@@ -111,6 +112,7 @@ export const Borrow = () => {
   const createBorrow = (borrow: BorrowModel) => {
     setOpenCreate(false);
     createBorrowApi(borrow)
+      .unwrap()
       .then(() => {
         setPageNumber(0);
         dispatch(
@@ -118,12 +120,13 @@ export const Borrow = () => {
         );
       })
       .catch((error) => {
-        console.log(error);
-        dispatch(setMessage({ text: "Se ha producido un error al crear el préstamo", type: "error" }));
+         let message = "Se ha producido un error al crear el préstamo";
+         if(error?.data?.message) message= error.data.message;
+        dispatch(setMessage({ text: message, type: "error" }));
       })
   };
 
-  const handleDeleteLoan = () => {
+  const handleDeleteBorrow = () => {
     if (idToDelete){
       deleteBorrowApi(idToDelete)
       .then(() => {
@@ -137,15 +140,11 @@ export const Borrow = () => {
     }else{dispatch(setMessage({text:"No se ha seleccionado ningún préstamo", type:"error"}));}
   };
 
-  function handleDeleteBorrow(): void {
-    throw new Error("Function not implemented.");
-  }
-
   return (
     <div className="container">
       <h1>Préstamos</h1>
-      <div className='filters'>
-        <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }}>
+      <div className={styles.filter}>
+        <FormControl variant="standard" sx={{ m: 1, minWidth: 220 }}>
           <TextField
             id="game"
             select
@@ -164,7 +163,7 @@ export const Borrow = () => {
               ))}
           </TextField>
         </FormControl>
-        <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }}>
+        <FormControl variant="standard" sx={{ m: 1, minWidth: 220 }}>
           <TextField
             id="client"
             select
@@ -187,6 +186,7 @@ export const Borrow = () => {
           <DemoContainer components={["DatePicker", "DesktopDatePicker"]}>
             <DemoItem label="Fecha">
               <DesktopDatePicker
+              
                 value={filterDate ? dayjs(filterDate) : null}
                 onChange={(newDate) => {
                   if(newDate && newDate.isValid()){
@@ -202,6 +202,7 @@ export const Borrow = () => {
 
         <Button
         variant="outlined"
+        sx= {{ marginTop:2, height: 40}}
         onClick={() => {
           setFilterByGame("");
           setFilterByCustomer("");
@@ -235,8 +236,8 @@ export const Borrow = () => {
                 <TableCell component="th" scope="row">{borrow.id}</TableCell>
                 <TableCell style={{ width: 160 }}>{borrow.customer?.name}</TableCell>
                 <TableCell style={{ width: 160 }}>{borrow.game?.title}</TableCell>
-                <TableCell style={{ width: 160 }}>{borrow.startDate ? dayjs(borrow.startDate).format('DD/MM/YYY') : ''}</TableCell>
-                <TableCell  style={{ width: 160 }}>{borrow.finishDate ? dayjs(borrow.finishDate).format('DD/MM/YYY') : ''}</TableCell>
+                <TableCell style={{ width: 160 }}>{borrow.startDate ? dayjs(borrow.startDate).format('DD-MM-YYYY') : ''}</TableCell>
+                <TableCell  style={{ width: 160 }}>{borrow.finishDate ? dayjs(borrow.finishDate).format('DD-MM-YYYY') : ''}</TableCell>
                 <TableCell align="right">
                   <div className={styles.tableActions}>
                     <IconButton

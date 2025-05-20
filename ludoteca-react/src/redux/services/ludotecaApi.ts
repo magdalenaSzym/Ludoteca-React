@@ -167,6 +167,7 @@ export const ludotecaAPI = createApi({
       query: () => "borrow",
       providesTags: ["Borrow"],
     }),
+   
     createBorrow: builder.mutation({
       query: (payload) => ({
         url: "/borrow",
@@ -193,15 +194,16 @@ export const ludotecaAPI = createApi({
       }),
       invalidatesTags: ["Borrow"],
     }),
-    getBorrowsByPage: builder.query<BorrowResponse, { pageNumber: number; pageSize: number; idGame?: string; idCustomer?: string; date?: string }>({
-      query: ({ pageNumber, pageSize, idGame, idCustomer, date }) => {
+    getBorrowsByPage: builder.query<BorrowResponse, 
+    { pageNumber: number; pageSize: number; gameId?: string; customerId?: string; date?: string }>({
+      query: ({ pageNumber, pageSize, gameId, customerId, date }) => {
         return {
-          url: "/loan",
+          url: "/borrow",
           method: "POST",
           params: { 
-            idGame, 
-            idCustomer, 
-            date: date ? date : undefined },
+            gameId, 
+            customerId, 
+            date, },
           body: {
             pageable: { pageNumber, pageSize },
           },
